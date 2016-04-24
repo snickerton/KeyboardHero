@@ -1,2 +1,2 @@
 # KeyboardHero
-Be a rockstart with a keyboard
+Be a rockstar with your keyboard
