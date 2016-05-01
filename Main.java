@@ -56,7 +56,9 @@ public class KeyListenerExample {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				int keyCode = e.getKeyCode();
-
+				
+				System.out.println(keyCode);
+				
 				//IF NOT NUMPAD KEYS
 				if(keyCode<96){
 					int keyPos = Arrays.asList(kClist).indexOf(keyCode);
@@ -80,10 +82,13 @@ public class KeyListenerExample {
 			public void keyReleased(KeyEvent e) {
 				int keyCode = e.getKeyCode();
 
-				int keyPos = java.util.Arrays.asList(kClist).indexOf(keyCode);
-
-				keys[keyPos] = false;
-				mc[instrument].noteOff(notes[keyPos]+shifter,499);
+				if(keyCode<96){
+					int keyPos = java.util.Arrays.asList(kClist).indexOf(keyCode);
+					keys[keyPos] = false;
+					mc[instrument].noteOff(notes[keyPos]+shifter,499);
+				}
+			
+				
 			}
 
 			@Override
