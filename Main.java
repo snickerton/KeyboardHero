@@ -66,10 +66,12 @@ public class KeyListenerExample {
 						mc[instrument].noteOn(notes[keyPos]+shifter,499);
 					}
 				}
-				else{
+				if(keyCode>96 && keyCode<106){
 					int keyPos = Arrays.asList(kClistNumPad).indexOf(keyCode);
 					shifter = 12*shifterVals[keyPos];
 				}
+				//if(keyCode>52 && keyCode<58)
+				
 
 
 			}
