@@ -1,27 +1,14 @@
 import java.awt.event.*;
 
-import javax.sound.midi.Instrument;
-import javax.sound.midi.MidiChannel;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
-import javax.sound.midi.Synthesizer;
+import javax.sound.midi.*;
+
 import javax.swing.*;
 
 import java.awt.Dimension;
 import java.util.Arrays;
 
-import javax.sound.midi.*;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
-import javax.swing.text.DefaultCaret;
 
-public class KeyListenerExample {
+public class main {
 
 	public static Synthesizer syn;
 	public static MidiChannel[] mc;
@@ -34,10 +21,13 @@ public class KeyListenerExample {
 		JFrame frame = new JFrame("Key Listener");
 		JPanel pane = new JPanel();
 
-		final boolean[] keys = new boolean[12];
+		//true or false of which keys are pressed
+		final boolean[] keys = new boolean[15];
 
-		final Integer[] kClist = new Integer[]{KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3, KeyEvent.VK_4, 81, 87, 69, 82, 65, 83, 68, 70};
-		final int[] notes = new int[]{55,56,57,58,59,60,61,62,63,64,65,66};
+		//list of actual keyboard characters used
+		final Integer[] kClist = new Integer[]{KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3, KeyEvent.VK_4, KeyEvent.VK_5, 81, 87, 69, 82, 84, 65, 83, 68, 70, 71};
+		//each corresponding note to the index of key
+		final int[] notes = new int[]{55,56,57,58,59,59,60,61,62,63,63,64,65,66,67};
 
 		//shifting octaves
 		final Integer[] kClistNumPad = new Integer[]{97,98,99,100,101,102,103,104,105};
@@ -45,27 +35,34 @@ public class KeyListenerExample {
 
 		syn = MidiSystem.getSynthesizer();
 		syn.open();     
-		mc = syn.getChannels();
+
+		//syn.loadAllInstruments(soundbank)
 		Instrument[] instr = syn.getDefaultSoundbank().getInstruments();
-		syn.loadInstrument(instr[90]);
+		syn.loadInstrument(instr[66]);
+		
+		mc = syn.getChannels();
+
 
 		KeyListener listener = new KeyListener() {
+			//octave control
 			int shifter = 0;
-			int instrument = 2;
-			
+			int instrument = 0;
+			//which ever keys are pressed during sus will remain "pressed" (MAYBE NOT PLAYED, BUT PRESSED) during sus
+			boolean sus = false;
+
 			@Override
 			public void keyPressed(KeyEvent e) {
 				int keyCode = e.getKeyCode();
-				
+
 				System.out.println(keyCode);
-				
+
 				//IF NOT NUMPAD KEYS
-				if(keyCode<96){
+				if(keyCode<96&&keyCode>48){
 					int keyPos = Arrays.asList(kClist).indexOf(keyCode);
 
 					if(!keys[keyPos]){
 						keys[keyPos] = true;
-						mc[instrument].noteOn(notes[keyPos]+shifter,499);
+						mc[instrument].noteOn(notes[keyPos]+shifter,500);
 					}
 				}
 				if(keyCode>96 && keyCode<106){
@@ -73,8 +70,36 @@ public class KeyListenerExample {
 					shifter = 12*shifterVals[keyPos];
 				}
 				//if(keyCode>52 && keyCode<58)
-				
 
+				//"+" button for sus
+				if(keyCode == 107){
+					sus = !sus;
+					System.out.println(sus);
+
+					if(sus == false){
+
+						//set all notes as not pressed
+						Arrays.fill(keys, false);
+
+						//turn off all notes
+						for(int i = 0; i<keys.length; i++){
+							mc[instrument].noteOff(notes[i]+shifter,500);
+						}
+
+
+					}
+				}
+
+
+
+				//"Space" or "-" button to strum all held down keys
+				if(keyCode == 32||keyCode == 109){
+					for(int i = 0; i<keys.length; i++){
+						if(keys[i]){
+							mc[instrument].noteOn(notes[i], 500);
+						}
+					}
+				}
 
 			}
 
@@ -82,18 +107,19 @@ public class KeyListenerExample {
 			public void keyReleased(KeyEvent e) {
 				int keyCode = e.getKeyCode();
 
-				if(keyCode<96){
+				if(keyCode<96&&sus == false&&keyCode>48){
 					int keyPos = java.util.Arrays.asList(kClist).indexOf(keyCode);
 					keys[keyPos] = false;
-					mc[instrument].noteOff(notes[keyPos]+shifter,499);
+					mc[instrument].noteOff(notes[keyPos]+shifter,500);
 				}
-			
-				
-			}
+
+
+
+			}//EO keyReleased
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
+				int keyCode = e.getKeyCode();
 
 			}
 
@@ -106,7 +132,7 @@ public class KeyListenerExample {
 		frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setPreferredSize(new Dimension(200, 200));
-        frame.setAlwaysOnTop(true);
+		frame.setAlwaysOnTop(true);
 
 
 		frame.pack();
